@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html>
+
+
+
+	<head>
+		<style type = "text/css">
+		body{
+		
+		margin:40px;
+		background: #393939;
+		}
+		#div{
+		background:#757575;
+		width: 512px;
+		left:0;
+		right:0;
+		margin-left:auto;
+		margin-right:auto;
+		border: #000 6px solid;
+		border-radius: 12px;
+		
+		}
+		
+		
+		
+		#canvas{
+		position: absolute;	
+		left:0;
+		right:0;
+		margin-left:auto;
+		margin-right:auto;
+		width: 512px;
+		height: 512px;
+		background: #ffffff;
+		border:#000 6px solid;
+		border-radius: 12px;
+		var radius = 2;
+		cursor:crosshair;
+		}
+		
+		
+		</style>
+			<script>
+		var canvas,		//variable declarations and initializations.
+		context,
+		dragging = false,
+		dragStartLocation,
+		position,
+		radius = 2,
+		snapshot,
+		circle,
+		square,
+		pen = true, //sets the default starting tool to the Pen.
+		eraser,
+		line,
+		color;
+		
+		
+		function getCanvasCoordinates(event) {//This gets the location of the mouse, whenever called.
+			var x = event.clientX - canvas.getBoundingClientRect().left-5,
+			y = event.clientY - canvas.getBoundingClientRect().top-6;
+		return {x: x, y: y};
+		}
+		
+		
+		//the snapshot functions save and restore the canvas while using tools.
+		function takeSnapshot() {
+			snapshot = context.getImageData(0, 0, canvas.width, canvas.height);
+		}
+
+		function restoreSnapshot() {
+			context.putImageData(snapshot, 0, 0);
+		}
+		
+		
+						function tool(){
+							if(eraser == true){
+								document.getElementById("eraserButton").src = 'http://www.mcmaster.ca/bms/student/images/check%20mark.png';
+								document.getElementById("penButton").src = "http://people.emich.edu/afighter/Project/PP5/pencil.png"; 
+								document.getElementById("lineButton").src = "http://people.emich.edu/afighter/Project/PP5/line.png" ;
+								document.getElementById("circleButton").src = "http://people.emich.edu/afighter/Project/PP5/circle.png" ;
+								document.getElementById("squareButton").src = "http://enterprise-dashboard.com/img/bullet_square_grey.png" ;
+							}
+							if(pen == true){
+								
+								document.getElementById("eraserButton").src = "http://png.findicons.com/files/icons/1035/human_o2/128/package_purge.png" ;
+								document.getElementById("penButton").src = 'http://www.mcmaster.ca/bms/student/images/check%20mark.png';
+								document.getElementById("lineButton").src = "http://people.emich.edu/afighter/Project/PP5/line.png" ;
+								document.getElementById("circleButton").src = "http://people.emich.edu/afighter/Project/PP5/circle.png" ;
+								document.getElementById("squareButton").src = "http://enterprise-dashboard.com/img/bullet_square_grey.png" ;
+								
+							}
+							if(line == true){
+								document.getElementById("eraserButton").src = "http://png.findicons.com/files/icons/1035/human_o2/128/package_purge.png" ;
+								document.getElementById("penButton").src = "http://people.emich.edu/afighter/Project/PP5/pencil.png";
+								document.getElementById("lineButton").src = 'http://www.mcmaster.ca/bms/student/images/check%20mark.png';
+								document.getElementById("circleButton").src = "http://people.emich.edu/afighter/Project/PP5/circle.png" ;
+								document.getElementById("squareButton").src = "http://enterprise-dashboard.com/img/bullet_square_grey.png" ;
+							}
+							if(circle == true){
+								document.getElementById("eraserButton").src = "http://png.findicons.com/files/icons/1035/human_o2/128/package_purge.png" ;
+								document.getElementById("penButton").src = "http://people.emich.edu/afighter/Project/PP5/pencil.png";
+								document.getElementById("lineButton").src = "http://people.emich.edu/afighter/Project/PP5/line.png" ;
+								document.getElementById("circleButton").src = 'http://www.mcmaster.ca/bms/student/images/check%20mark.png';
+								document.getElementById("squareButton").src = "http://enterprise-dashboard.com/img/bullet_square_grey.png" ;
+							}
+							if(square == true){
+								document.getElementById("eraserButton").src = "http://png.findicons.com/files/icons/1035/human_o2/128/package_purge.png" ;
+								document.getElementById("penButton").src = "http://people.emich.edu/afighter/Project/PP5/pencil.png";
+								document.getElementById("lineButton").src = "http://people.emich.edu/afighter/Project/PP5/line.png" ;
+								document.getElementById("circleButton").src = "http://people.emich.edu/afighter/Project/PP5/circle.png" ;
+								document.getElementById("squareButton").src = 'http://www.mcmaster.ca/bms/student/images/check%20mark.png';
+							}
+						
+						}
+						function drawLine(position) //Straight Line Tool.
+						{
+							context.beginPath();
+							context.moveTo(dragStartLocation.x, dragStartLocation.y);
+							context.lineTo(position.x, position.y);
+							context.stroke();
+							context.beginPath();//ends the current path so when the Pen or Eraser tool is used, it doesn't stroke the last path.
+						}
+						
+						
+						function drawCircle(position)//Circle Tool. 
+						{
+							radius = Math.sqrt(Math.pow((dragStartLocation.x - position.x), 2) + Math.pow((dragStartLocation.y - position.y), 2));
+							context.beginPath();
+							context.arc(dragStartLocation.x, dragStartLocation.y, radius, 0, 2 * Math.PI, false);
+							context.fill();
+							context.stroke();
+							context.beginPath();//ends the current path so when the Pen or Eraser tool is used, it doesn't stroke the last path.
+						}
+						
+						function drawRect(position)//Rectangle Tool.
+						{
+						var x = Math.min(position.x,dragStartLocation.x);
+						var y = Math.min(position.y,dragStartLocation.y);
+						var width = Math.abs(position.x - dragStartLocation.x);
+						var height = Math.abs(position.y - dragStartLocation.y);
+						context.beginPath();
+						restoreSnapshot();
+						context.rect(x, y, width, height);
+						context.fill()
+						context.stroke();
+						context.beginPath();//ends the current path so when the Pen or Eraser tool is used, it doesn't stroke the last path.
+						}
+						
+						
+						function drawPen(position)//Pen Tool.
+						{	
+							
+							radius = document.getElementById('LW').value / 2;
+							context.lineTo(position.x, position.y);
+							context.stroke();
+							context.fillStyle = document.getElementById('lineColor').value;
+							context.beginPath();
+							context.arc(dragStartLocation.x, dragStartLocation.y, radius, 0, 2*Math.PI);
+							context.fill();		
+							context.beginPath();
+							context.moveTo(position.x, position.y);
+							
+						}
+						
+						function erase(position)//Eraser Tool.
+						{ 
+						context.lineTo(position.x, position.y);
+						context.stroke();
+						context.beginPath();
+						context.arc(dragStartLocation.x, dragStartLocation.y, radius, 0, 2*Math.PI);
+						context.fill();		
+						context.beginPath();
+						context.moveTo(position.x, position.y);
+						}
+						
+						
+						function clearCanvas(){ //Clears the page.
+						var a = canvas.width;
+						var b = canvas.height;
+						context.clearRect(0,0,a,b);
+
+						}
+						
+														//This section of code takes care of all the mouse listener events.
+														//*
+														//*
+														//*
+														function trackMouse(event)//Keeps track of the mouse position, while not using a tool.
+														{
+														if (dragging == false){ //Is a tool in use?
+														
+														position = getCanvasCoordinates(event);
+														context.moveTo(position.x,position.y); //set the current draw position to the mouse location.
+														
+														}
+														}
+														
+														function liftPen(event){//This "lifts" the pen or eraser tool up when the user drags
+																				// the tool off the canvas.
+														if(dragging == true){
+														dragStop();
+														}
+														}
+														
+														
+														
+														function dragStart(event) {//This allows you to hold the mouse down to use a tool.
+															context.save();
+															dragging = true; 
+															context.globalCompositeOperation = 'source-over';
+															document.getElementById('indicator').innerHTML = "The drawing tool is down";
+															dragStartLocation = getCanvasCoordinates(event);
+															
+															takeSnapshot(); //stores the current contents of the canvas.
+															if(eraser == false){
+															context.fillStyle = document.getElementById('fillColor').value;
+															context.strokeStyle = document.getElementById('lineColor').value;
+															}
+															if(eraser == true){
+															context.globalCompositeOperation = "destination-out";
+															context.strokeStyle = 'rgba(0,0,0,1.0)';
+															context.fillStyle = 'rgba(0,0,0,1.0)';
+															radius = document.getElementById('LW').value / 2;
+															//context.fillStyle = document.getElementById('BGColor').value;
+															//context.strokeStyle = document.getElementById('BGColor').value;
+															}
+															
+														}
+														
+														//this portion of the code is executed while you have the mouse button down,
+														//and dragging the mouse.
+														
+														function drag(event) {
+																		
+															if (dragging == true) {
+															position = getCanvasCoordinates(event);
+															
+																if(circle == true){//drawing a circle?
+																restoreSnapshot(); //keeps restoring the canvas, so until you let go, you aren't stuck with the largest
+																					//size circle.
+																drawCircle(position); 
+																}
+																if (square == true){
+																	restoreSnapshot();
+																	drawRect(position);
+																}
+																if(line == true){//drawing a straight line?
+																
+																restoreSnapshot();//restore the page so you don't get a "fan" instead of a line.
+																drawLine(position);
+																}
+															
+																if(pen == true){//want to use the pen?
+																
+																drawPen(position);//don't restore the page, because you will just get dots.
+																
+																}
+																if(square==true){//drawing a rectangle?
+																
+																	restoreSnapshot();//restore the page so you aren't messing up the page as you drag.
+																drawRect(position);
+																}
+																if(eraser == true){
+															
+																//context.fillStyle = document.getElementById('BGColor').value;
+																//context.strokeStyle = document.getElementById('BGColor').value;
+																erase(position);
+																}
+															}
+									
+															//this portion finishes up whichever tool you are using.
+														}
+														function dragStop(event) {
+															dragging = false; //stop calling the drag function!
+															document.getElementById('indicator').innerHTML = "The drawing tool is up.";
+															position = getCanvasCoordinates(event); //get the position of the mouse.
+															
+															
+															
+															if(circle == true){//drawing a circle?
+															restoreSnapshot();
+															drawCircle(position); //Draw that circle!
+															}
+															
+															if(line == true){//drawing a straight line?
+															restoreSnapshot();
+															drawLine(position);//Draw that line!
+															}
+															
+															if(pen == true){//using the pen?
+																			//No need to restore the canvas here, we WANT to mark the page with our pen.
+																			
+															drawPen(position);//finish drawing with the pen.									
+															}
+															
+															if(square == true)//drawing a rectangle?
+															{					
+															restoreSnapshot();
+															drawRect(position);//draw that rectangle!
+															}
+															if(eraser == true){//want to erase?
+															eraser(position);
+															context.restore();
+															context.globalCompositeOperation = 'source-over';
+															context.strokeStyle = document.getElementById('lineColor').value;
+															context.fillStyle = document.getElementById('fillColor').value;
+																
+																}
+														}
+ 
+							//This portion of the code controls the colors of the stroke and fill styles.
+							
+							
+							function LineC(){//This is the function to set the color of the pen and line tools to the color selected
+											// with the line color selector.
+							 var lColor = document.getElementById("lineColor").value;
+							 context.strokeStyle = lColor;
+							
+							}
+							function FillC(){//This is the function to set the fill color of the tools that use them, like the shapes.
+											//It gets the color from the color selector for Fill.
+							 var fColor = document.getElementById("fillColor").value;
+							 context.fillStyle = fColor;
+							
+							}
+							function BGC() {//This sets the background color of the canvas,
+											//without changing the "paint" on the canvas.
+							 canvasColor = document.getElementById("BGColor").value;
+							document.getElementById('canvas').style.backgroundColor = canvasColor;
+							}
+							function Lineweight(){
+							
+							var thickness = document.getElementById("LW").value;
+							context.lineWidth = thickness;
+							radius = thickness/2;
+							}
+		
+	
+		
+		
+		function init() {//This initializes the canvas, and adds the listeners for the tools.
+						
+			var canvasColor = document.getElementById("BGColor");
+			canvas = document.getElementById("canvas");
+			canvas.width = 512;
+			canvas.height = 512;
+			context = canvas.getContext('2d');
+			context.strokeStyle = '#000000';
+			context.fillStyle = '#000000';
+			context.lineWidth = '4';
+			context.lineCap = 'round';
+			context.save();
+			canvas.addEventListener('mousedown', dragStart, false);
+			canvas.addEventListener('mousemove', trackMouse, true);
+			canvas.addEventListener('mousemove', drag, false);
+			canvas.addEventListener('mouseup', dragStop, false);
+			canvas.addeventListener('mouseout',dragStop, false);
+			canvasColor.addEventListener("input", BGColor, false);
+
+		}
+		
+		window.addEventListener('load', init, false);
+				
+			</script>
+
+
+	</head>
+
+
+
+	<body>
+	
+	
+	
+	<div id = "div" width = "512px">
+	
+		<form>
+		
+		
+			Line Color:
+				<input type="color" id="lineColor" onchange = "LineC()">
+
+   
+			Fill Color:
+				<input type="color" id="fillColor" onchange = "FillC()">
+ 
+			Background Color:
+			<input type="color" id="BGColor" value = "#ffffff" onchange = "BGC()"><br>
+			Line Weight:
+			<select Id = "LW" onchange ="Lineweight()" value = "4">
+				<option value = "4" >Lineweight 4</option>
+				<option value = "8" >Lineweight 8</option>
+				<option value = "12" >Lineweight 12</option>
+				<option value = "16" >Lineweight 16</option>
+				<option value = "20" >Lineweight 20</option>
+				<option value = "24" >Lineweight 24</option>
+				<option value = "28" >Lineweight 28</option>
+				<option value = "32" >Lineweight 32</option>
+				<option value = "36" >Lineweight 36</option>
+				<option value = "40" >Lineweight 40</option>
+			</select>
+			<input type = "button" Id = "wipeScreen" onclick = "clearCanvas()" value = "Clear Canvas"></button>
+			
+	
+  
+		</form>
+						<!-- these are the tool buttons. -->
+					<input type = "image" width = "60" height = "60"  id = 'eraserButton' src = "http://png.findicons.com/files/icons/1035/human_o2/128/package_purge.png" 
+					onclick = "pen = false , eraser = true, square = false, circle = false, line = false; tool()"></input>
+
+					<input type = "image" width = "60" height = "60"  id = 'penButton' src = 'http://www.mcmaster.ca/bms/student/images/check%20mark.png'
+					onclick = "pen = true ,eraser = false, square = false, circle = false, line = false; tool()"></input>
+
+					<input type = "image" width = "60" height = "60" id = 'lineButton' src = "http://people.emich.edu/afighter/Project/PP5/line.png" 
+						onclick = "line = true ,eraser = false, square = false, circle = false, pen = false; tool()"></input>
+					
+					<input type = "image" width = "60" height = "60" id = 'circleButton' src = "http://people.emich.edu/afighter/Project/PP5/circle.png" 
+						onclick = "circle = true ,eraser = false, square = false, line = false, pen = false; tool()"></input>
+					
+					<input type = "image" width = "60" height = "60"  id = 'squareButton' src = "http://enterprise-dashboard.com/img/bullet_square_grey.png" 
+						onclick = "square = true , pen = false , eraser = false, circle = false, line = false; tool()"></input>
+					
+					<div id = "indicator">"The pen tool is up."</div>
+					
+
+		</div>
+	<canvas id = "canvas" width = "520" height = "520" onmouseout = 'liftPen()'><canvas>
+		
+			
+	</body>
+
+
+
+</html>
